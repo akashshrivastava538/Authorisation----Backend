@@ -2,7 +2,9 @@
 const bcrypt = require("bcrypt");
 //models ko import karana hoga taki db se interact kar paye using models
 const User = require("../models/Users");
-const { hash } = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config(); //JWT Secret .env file se lene ke liye ye krna hoga
+
 
 //signup ka route handler
 exports.signup = async (req,res) =>{
@@ -51,3 +53,96 @@ exports.signup = async (req,res) =>{
     }
 }
 
+//login
+//1 {email,password} = req.body;
+//2 valid -> if(!email || !password) return res
+//3 email -> user exist -> db call -> findOne({email})
+//4 validate password -> 
+//yes {create json webtoken -> jwt ka instance nikala hoga, uske liye import karenge, uske liye install karna hoga
+//}
+// |-> no return 
+
+//login
+exports.login = async(req,res) => {
+    try{
+        //data fetch
+        const {email,password} = req.body;
+        //validation on email and password
+        if(!email || !password){
+            return res.status(400).json({
+                success:false,
+                message:'Please fill all the details carefully',
+            });
+        }
+        //check for registered user
+        let user = await User.findOne({email});
+        //if not registered
+        if(!user){
+            return res.status(401).json({
+                success:false,
+                message:'User is not registered',
+            });
+        }
+
+        const payLoad = {
+            email:user.email,
+            id:user._id,
+            role:user.role,
+        };
+
+        //verify password and generate a JWT token
+        if(await bcrypt.compare(password,user.password)){
+            //jwt token create krne se pehle uska instance lena hoga, import krne ke liye usko install krna hoga
+            //password match
+            let token = jwt.sign(payLoad,
+                                process.env.JWT_SECRET,
+                                {
+                                    expiresIn:"2h",
+                                });
+            
+            user = user.toObject();
+            user.token = token; //user ki entry jo nikale h, usme alagse field banadi token naamki and usme ye token insert kr diye
+            //user ke andar password bhi h, toh usko hata denge
+            user.password = null; //password ko user ke object se hataya h, database se nhi
+            //ab cookie create krenge
+            // jo hamara response hoga usme ek cookie add krenge
+            //cookie ke andar 3 paramaters pass krne hote h, 1. cookie ka naam, 2. cookie ka data, 3. kuch options
+            const options = {
+                expires: new Date(Date.now() + 3*24*60*60*1000), //abhi se leke 3 din baad cookie expire hogi
+                httpOnly:true, //client site pe cookie ko change nhi kr skte
+            }
+            //ye options hame banane parenge
+            res.cookie("babbarCookie",token,options).status(200).json ({
+                success:"true",
+                token,
+                user,
+                message:'User Logged in successfully',
+            });
+
+        }else{
+            //password do not match
+            return res.status(403).json({
+                success:false,
+                message:"Password incorrect",
+            });
+        }
+
+    }
+    catch(error){
+        console.log(error);
+        return res.status(500).json({
+            success:false,
+            message:'Login failure',
+        })
+    }
+}
+
+//email pass fetch from req body
+//validation -> email/pass
+//check is user is registered or not
+//compare password, no-> return yes->create jwt token using sign method, user.token, user.password->invalid, res.cookie(__,__,__) status, 
+
+
+
+//middlewares
+//req and server ke bich me req ko intercept krke execute hota
