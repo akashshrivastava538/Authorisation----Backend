@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     },
     role:{
         type:String,
-        enum:["Admin","Student","Visitor"] //enum use krne se role ka space limit ho jata h ; in teeno mese hi ek value hogi, nothing other than that
+        enum:["Admin","Student","Visitor"], //enum use krne se role ka space limit ho jata h ; in teeno mese hi ek value hogi, nothing other than that
     }
 })
 
