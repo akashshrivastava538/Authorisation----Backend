@@ -6,7 +6,7 @@ const router = express.Router();
 const {login, signup} = require("../Controllers/Auth") // dono handler ko import karayenge, wo Controller me pare honge
 // import kara liye aur
 
-router.post("/login",login); //login request ko login handler se map kardo
+// router.post("/login",login); //login request ko login handler se map kardo
 router.post("/signup",signup); //signup request ko signup handler se map kardo
 
 //export karado
