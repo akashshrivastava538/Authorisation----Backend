@@ -28,3 +28,4 @@ const userSchema = new mongoose.Schema({
 //hamne schema define kr diya, ab model create krke export krna h
 
 module.exports = mongoose.model("user",userSchema);
+// ok
